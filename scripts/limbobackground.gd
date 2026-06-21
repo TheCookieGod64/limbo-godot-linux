@@ -20,8 +20,8 @@ func modenumber():
 	if (debug) or (VariableKeeper.checkvar("fullscreen_ending") == false):
 		return Window.MODE_MAXIMIZED
 	else:
-		return Window.MODE_EXCLUSIVE_FULLSCREEN
-	
+		return Window.MODE_FULLSCREEN   # Changed from EXCLUSIVE_FULLSCREEN for better Linux compatibility
+
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	
@@ -34,23 +34,36 @@ func _ready():
 	currentwindow.set_flag(Window.FLAG_NO_FOCUS, false)
 	currentwindow.set_flag(Window.FLAG_TRANSPARENT, false) # idk if this do anything
 	get_viewport().set_transparent_background(false) # fixing windows 10 bug
+	
 	if VariableKeeper.hide_border_on_maximize and !VariableKeeper.fullscreen_ending:
 		currentwindow.set_flag(Window.FLAG_BORDERLESS, true)
+	
+	# === LINUX FULLSCREEN FIX ===
 	currentwindow.set_mode(modenumber())
+	await get_tree().process_frame
+	await get_tree().process_frame
+	
+	var screen_size = DisplayServer.screen_get_size()
+	currentwindow.size = screen_size
+	self.set_size(screen_size)
+	
+	if VariableKeeper.sixteen_by_nine_reso or debug:
+		sixteenbyninecontrol.set_size(Vector2((screen_size.y * 16 / 9), screen_size.y))
+		sixteenbyninecontrol.position.x = screen_size.x / 2 - sixteenbyninecontrol.size.x / 2
+	else:
+		sixteenbyninecontrol.set_size(screen_size)
+	# =============================
+	
 	currentwindow.move_to_foreground()
 	currentwindow.grab_focus()
+	
 	set_tween_topbg()
 	set_tween_bottombg()
-	# for context: var currentwindow = get_window()
-	self.set_size(currentwindow.get_size())
-	if VariableKeeper.sixteen_by_nine_reso or debug:
-		sixteenbyninecontrol.set_size(Vector2((currentwindow.size.y * 16 / 9), currentwindow.size.y))
-		sixteenbyninecontrol.position.x = currentwindow.size.x / 2 - sixteenbyninecontrol.size.x / 2
-	else:
-		pass
+	
 	var middlescreen = Vector2(sixteenbyninecontrol.size.x / 2, sixteenbyninecontrol.size.y / 2)
 	pcicon.position = middlescreen
 	spikehitbox.position.x = middlescreen.x
+	
 	set_tween_pcicon()
 	bsodscene = load("res://scenes/bsod.tscn")
 

@@ -23,13 +23,25 @@ func _ready():
 	ProjectSettings.set("display/window/per_pixel_transparency/allowed", false)
 	get_viewport().set_transparent_background(false)
 	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
+	
 	var currentwindow = get_window()
-	self.set_size(currentwindow.get_size())
+	
+	# === LINUX FULLSCREEN FIX ===
+	currentwindow.set_mode(Window.MODE_FULLSCREEN)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	
+	var screen_size = DisplayServer.screen_get_size()
+	currentwindow.size = screen_size
+	self.set_size(screen_size)
+	
 	if VariableKeeper.sixteen_by_nine_reso or debug:
-		sixteenbyninecontrol.set_size(Vector2((currentwindow.size.y * 16 / 9), currentwindow.size.y))
-		sixteenbyninecontrol.position.x = currentwindow.size.x / 2 - sixteenbyninecontrol.size.x / 2
+		sixteenbyninecontrol.set_size(Vector2((screen_size.y * 16 / 9), screen_size.y))
+		sixteenbyninecontrol.position.x = screen_size.x / 2 - sixteenbyninecontrol.size.x / 2
 	else:
-		pass
+		sixteenbyninecontrol.set_size(screen_size)
+	# =============================
+	
 	currentwindow.set_flag(Window.FLAG_TRANSPARENT, false)
 	VariableKeeper.timerprocesschanger(quittimer)
 	VariableKeeper.timerprocesschanger(percenttimer)
